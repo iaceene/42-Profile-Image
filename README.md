@@ -3,6 +3,8 @@
 **Version:** 1.0.0
 **Author:** Yassine Ajagrou  
 
+![Alt text](/bg.png)
+
 ## Description
 **42 Profile Image** is a Chrome extension that automatically replaces your 42 Intra profile image with a custom image. You can set a custom image URL directly from the extension popup.  
 
