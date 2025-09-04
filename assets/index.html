@@ -74,17 +74,16 @@
         }
 
         .image-preview {
-    width: 100%;
-    height: auto;          /* ✅ auto height */
-    max-height: 400px;     /* optional: prevent super tall images */
-    object-fit: contain;   /* ✅ shows full image */
-    background: #111;      /* black background for empty spaces */
-    border-radius: 12px;
-    margin-bottom: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
-}
-
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: contain;
+            background: #111;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
 
         .image-card:hover .image-preview {
             transform: scale(1.05);
@@ -183,6 +182,42 @@
             transform: rotate(180deg);
         }
 
+        /* Pagination Styles */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .page-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(103, 126, 234, 0.5);
+        }
+
+        .page-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: rgba(103, 126, 234, 0.5);
+        }
+
+        .page-info {
+            text-align: center;
+            margin-top: 1rem;
+            color: #a0a0a0;
+        }
+
         @media (max-width: 768px) {
             .gallery {
                 grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -196,14 +231,25 @@
             body {
                 padding: 1rem;
             }
+            
+            .pagination {
+                gap: 0.3rem;
+            }
+            
+            .page-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-    
-        <div id="gallery" class="gallery">
-        </div>
+        <div id="gallery" class="gallery"></div>
+        
+        <div id="pagination" class="pagination"></div>
+        
+        <div id="page-info" class="page-info"></div>
         
         <div id="no-images" class="no-images" style="display: none;">
             <p>📁 No images found in the imgs folder.</p>
@@ -222,591 +268,153 @@
         const imageExtensions = ['.svg', '.webp', '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.ico'];
         const gallery = document.getElementById('gallery');
         const noImagesDiv = document.getElementById('no-images');
-
-
+        const paginationDiv = document.getElementById('pagination');
+        const pageInfoDiv = document.getElementById('page-info');
+        
+        // Pagination variables
+        const IMAGES_PER_PAGE = 30;
+        let currentPage = 1;
+        let totalPages = 1;
+        let allImages = [];
 
         const mockImages = [
-  '28_years_later.png',
-  'bush_camper.png',
-  'dice_violet.png',
-  'friend_of_dex.png',
-  'hoppy_day.png',
-  'magical_wand_green.png',
-  'pink_futuristic_ui.png',
-  'shocked.png',
-  'supercell.png',
-  'a_duck.png',
-  'butterflies.png',
-  'digital_sunrise.png',
-  'frog_1.png',
-  'hot_shot.png',
-  'magical_wand_purple.png',
-  'pink_gyroscope.png',
-  'shocked_green.png',
-  'supply_llama.png',
-  'a_hint_of_clove.png',
-  'call_of_duty_mobile.png',
-  'dismay.png',
-  'frog_3.png',
-  'how_to_train_your_dragon.png',
-  'malefic_crown.png',
-  'pink_headset.png',
-  'shocked_yellow.png',
-  'sushi_roll.png',
-  'aespa_fanlight.png',
-  'cameraman_glitch.png',
-  'dismay_green.png',
-  'frog_angry.png',
-  'hugh_the_rainbow.png',
-  'mallow_jump.png',
-  'pink_hyper_helmet.png',
-  'shoto_todoroki.png',
-  'sweat_drops.png',
-  'afternoon_breeze.png',
-  'cammy.png',
-  'dismay_pink.png',
-  'frog_derpy.png',
-  'human_torch.png',
-  'marvel_snap_venom.png',
-  'pink_shine_helmet.png',
-  'shower_stroll.png',
-  'sweat_drops_cyan.png',
-  'aim_for_love.png',
-  'candlelight.png',
-  'dismay_purple.png',
-  'frog_hat.png',
-  'i_love_repo.png',
-  'mech_flora.png',
-  'pink_smoke.png',
-  'shroomling.png',
-  'sweat_drops_pink.png',
-  'air.png',
-  'candlelight_crimson.png',
-  'dismay_yellow.png',
-  'fuchsia_agent.png',
-  'ice_cream_frog.png',
-  'mecha_break.png',
-  'pipedream.png',
-  'shroomling_blue.png',
-  'sweet_tooth.png',
-  'akuma.png',
-  'candlelight_dark.png',
-  'disxcore_headset.png',
-  'g_toilet.png',
-  'ice_cube.png',
-  'mermaid_serenade.png',
-  'pirate_captain.png',
-  'shroomling_brown.png',
-  'teacup_blue.png',
-  'all_might.png',
-  'cannon_fire.png',
-  'dog_1.png',
-  'gallica.png',
-  'icicle_gleaming.png',
-  'midnight_sorceress.png',
-  'playful_lofi_cat.png',
-  'shroomling_pink.png',
-  'teacup_orange.png',
-  'angel.png',
-  'cat_1.png',
-  'dog_2.png',
-  'gary_the_snail.png',
-  'icicle_snowing.png',
-  'millennium_falcon_hyperdrive.png',
-  'polar_bear_hat.png',
-  'shroomling_purple.png',
-  'teacup_pink.png',
-  'angry.png',
-  'cat_2.png',
-  'dog_3.png',
-  'gawblehop.png',
-  'im_a_clown.png',
-  'mini_goku.png',
-  'pondering_portal.png',
-  'shurikens_mask.png',
-  'teacup_red.png',
-  'angry_pink.png',
-  'cat_3.png',
-  'donut.png',
-  'gelatinous_cube_blue.png',
-  'imagination.png',
-  'mini_piccolo.png',
-  'port_of_soul.png',
-  'shy.png',
-  'terrain_tiles.png',
-  'angry_yellow.png',
-  'cat_4.png',
-  'donut_bear.png',
-  'gelatinous_cube_green.png',
-  'implant.png',
-  'mini_supreme_kai.png',
-  'powered_by_shimmer.png',
-  'shy_in_love.png',
-  'terrarium.png',
-  'arcane_sigil.png',
-  'cat_ear_headset.png',
-  'donut_cat.png',
-  'ggez.png',
-  'in_love.png',
-  'mini_vegeta.png',
-  'press_f_black.png',
-  'signal_from_tau_ceti.png',
-  'tga_controller.png',
-  'armamenter.png',
-  'cat_ears.png',
-  'donut_cow.png',
-  'ghosts.png',
-  'in_love_blue.png',
-  'minions.png',
-  'press_f_white.png',
-  'silver_surfer.png',
-  'the_anomaly.png',
-  'astronaut_helmet.png',
-  'cat_ears_blue.png',
-  'doodlezard.png',
-  'git_gud.png',
-  'in_love_green.png',
-  'mirage.png',
-  'pumpkin_spice.png',
-  'sippy_juice.png',
-  'the_atlas_gauntlets.png',
-  'the_conjuring_last_rites.png',
-  'aurora.png',
-  'cat_ears_green.png',
-  'doodling.png',
-  'glitch.png',
-  'in_tears.png',
-  'mirage_nightshade.png',
-  'questionable.png',
-  'skibidi_toilet.png',
-  'the_entity.png',
-  'autumn_crown.png',
-  'cat_ears_purple.png',
-  'dragon_balls.png',
-  'glop.png',
-  'in_tears_green.png',
-  'mirage_twilight.png',
-  'r2_d2_on_tatooine.png',
-  'skull_medallion.png',
-  'the_fantastic_four.png',
-  'autumns_arbor.png',
-  'cat_ears_yellow.png',
-  'dragons_smile.png',
-  'glorio.png',
-  'in_tears_pink.png',
-  'mirage_void.png',
-  'r6_siege_x_avatar.png',
-  'skully_charms.png',
-  'the_hexcore.png',
-  'autumns_arbor_aurora.png',
-  'cat_onesie.png',
-  'dusk_and_dawn.png',
-  'glowing_runes.png',
-  'in_tears_purple.png',
-  'mischievous_kitties.png',
-  'radiating_energy.png',
-  'sleepy_bee.png',
-  'the_mark.png',
-  'baby_displacer_beast.png',
-  'cat_onesie_black.png',
-  'e_d_hacker.png',
-  'goblin_stinkums.png',
-  'in_tears_yellow.png',
-  'mischievous_kitties_blue.png',
-  'radiating_energy_blue.png',
-  'sleepy_chilledcow.png',
-  'the_monster_you_created.png',
-  'bad_guys_2.png',
-  'cat_onesie_pink.png',
-  'earth.png',
-  'gold_laurel_wreath.png',
-  'invisible_woman.png',
-  'mischievous_kitties_hearts.png',
-  'radiating_energy_yellow.png',
-  'slither_n_snack.png',
-  'the_petal_pack.png',
-  'baker_bear.png',
-  'cattiva.png',
-  'egg.png',
-  'golden_hex.png',
-  'inzoi_psycat.png',
-  'mission_impossible.png',
-  'rage.png',
-  'slurp_barrel.png',
-  'the_thing.png',
-  'balance.png',
-  'chewbert.png',
-  'eldritch_ring.png',
-  'gomah.png',
-  'izuku_midoriya.png',
-  'mister_fantastic.png',
-  'rage_blue.png',
-  'snakes_hug.png',
-  'thps_half_pipe.png',
-  'ballerina.png',
-  'chicken_nugget.png',
-  'emma_frost.png',
-  'gone_fishin.png',
-  'jack_o_lantern.png',
-  'mochi_bunny_blue.png',
-  'rage_green.png',
-  'snowdrops.png',
-  'timekeepers_clock.png',
-  'batarang.png',
-  'chillet.png',
-  'endeavor.png',
-  'good_ol_pepper.png',
-  'jean_grey_phoenix.png',
-  'mochi_bunny_pink.png',
-  'rage_purple.png',
-  'snowfall.png',
-  'toast.png',
-  'beach_hat.png',
-  'chomp_chomp.png',
-  'espn.png',
-  'got_xenoglossy.png',
-  'jeff_the_land_shark.png',
-  'mokoko.png',
-  'rage_red.png',
-  'snowglobe.png',
-  'toilet_lid.png',
-  'beamchop.png',
-  'chromawave.png',
-  'exoborne.png',
-  'grass_toucher.png',
-  'jelly_bear.png',
-  'moomoo_hood.png',
-  'rainy_canopy.png',
-  'snowglobe_blue.png',
-  'tomura_shigaraki.png',
-  'berry_bunny.png',
-  'chrysanthemums_morning.png',
-  'eye_of_prophesy.png',
-  'graveyard_cat.png',
-  'jingasa.png',
-  'mooncaps_blue.png',
-  'rainy_mood.png',
-  'snowglobe_green.png',
-  'torgal_puppy.png',
-  'touch_grass.png',
-  'towerborne_play.png',
-  'black_hole.png',
-  'city_walls.png',
-  'fairy_sprites_blue.png',
-  'green_headset.png',
-  'juri.png',
-  'mushcaps.png',
-  'red_lantern.png',
-  'soul_leaving_body_blue.png',
-  'treasure_and_key.png',
-  'tv_woman.png',
-  'black_mana.png',
-  'clicker.png',
-  'fairy_sprites_pink.png',
-  'green_hyper_helmet.png',
-  'kabuto.png',
-  'mushroom_1.png',
-  'red_mana.png',
-  'space_battle.png',
-  'speakerwoman.png',
-  'ufo.png',
-  'blade_storm.png',
-  'clyde_invaders.png',
-  'fall_leaves.png',
-  'green_mana.png',
-  'katsuki_bakugo.png',
-  'mushroom_2.png',
-  'reynas_leer.png',
-  'speakerwoman.png',
-  'spirit_blossom_karma.png',
-  'ultron.png',
-  'blanket_green.png',
-  'confetti_festive.png',
-  'fall_leaves_scarlet.png',
-  'green_shine_helmet.png',
-  'ken.png',
-  'mushroom_3.png',
-  'rift_butterfly.png',
-  'spirit_blossom_morgana.png',
-  'unicorn.png',
-  'blanket_orange.png',
-  'confetti_fire.png',
-  'fall_leaves_woodland.png',
-  'green_smoke.png',
-  'khazan.png',
-  'mushroom_4.png',
-  'r6_siege_x_avatar.png',
-  'spirit_blossom_springs.png',
-  'uwu_xp.png',
-  'blanket_pink.png',
-  'confetti_ice.png',
-  'fan_flourish.png',
-  'greenhouse_cat.png',
-  'ki_energy.png',
-  'nba_2k26.png',
-  'ring_of_roses_blue.png',
-  'spirit_blossom_springs_ahri.png',
-  'valorant_champions_2024.png',
-  'blanket_purple.png',
-  'confetti_mint.png',
-  'feelin_awe.png',
-  'group_hug.png',
-  'ki_energy_blue.png',
-  'neon_cat_hoodie.png',
-  'ring_of_roses_red.png',
-  'spirit_blossom_springs_sett.png',
-  'valorant_summer_kickoff.png',
-  'bloodthirsty.png',
-  'confetti_star.png',
-  'feelin_nervous.png',
-  'guile.png',
-  'ki_energy_cyan.png',
-  'neon_cat_hoodie_black.png',
-  'rocket_puncher.png',
-  'spirit_blossom_zed.png',
-  'victory_crown.png',
-  'bloodthirsty_gold.png',
-  'confetti_vaporwave.png',
-  'feelin_panic.png',
-  'hackclaw.png',
-  'ki_energy_fuchsia.png',
-  'neon_cat_hoodie_blue.png',
-  'rose_bearer_blue.png',
-  'spirit_embers.png',
-  'viper_poison_cloud.png',
-  'bloodthirsty_green.png',
-  'constellations.png',
-  'feelin_scrumptious.png',
-  'hailey.png',
-  'ki_energy_green.png',
-  'neon_cat_hoodie_pink.png',
-  'rose_bearer_pink.png',
-  'split.png',
-  'wallach_spaceport.png',
-  'bloomling.png',
-  'copium.png',
-  'feeling_cute.png',
-  'hammy.png',
-  'kitsune.png',
-  'neon_decora_hair.png',
-  'ruby_hearts.png',
-  'spirit_blossom_springs.png',
-  'warp_helmet.png',
-  'blossomburst.png',
-  'cottage_home.png',
-  'fire.png',
-  'hammy_blue.png',
-  'koi_pond.png',
-  'neon_nibbles.png',
-  'rumbling.png',
-  'split.png',
-  'water.png',
-  'blue_futuristic_ui.png',
-  'cow_glider.png',
-  'firecrackers.png',
-  'hammy_green.png',
-  'lamball.png',
-  'neon_spike_choker.png',
-  'ryu.png',
-  'spongebob.png',
-  'wendys_x_wednesday.png',
-  'blue_gyroscope.png',
-  'cozy_cat.png',
-  'fireflies.png',
-  'hammy_pink.png',
-  'lava_blobs.png',
-  'neon_spike_choker_black.png',
-  'sakura.png',
-  'spooky_cat_ears.png',
-  'white_mana.png',
-  'blue_hyper_helmet.png',
-  'cozy_headphones.png',
-  'fishbones.png',
-  'hank_hill.png',
-  'lava_blobs_blue.png',
-  'new_year_2024.png',
-  'sakura_1.png',
-  'spooky_cat_ears_midnight.png',
-  'wingman_boba.png',
-  'blue_mana.png',
-  'cozy_post_it.png',
-  'flame_chompers.png',
-  'happy_harvest.png',
-  'lava_blobs_pink.png',
-  'new_year_2025.png',
-  'sakura_2.png',
-  'sproutling.png',
-  'wingmans_got_it.png',
-  'blue_shine_helmet.png',
-  'cozy_post_it_festive.png',
-  'flaming_sword.png',
-  'hawks.png',
-  'lava_blobs_slime.png',
-  'next_turn_button.png',
-  'sakura_3.png',
-  'stardust.png',
-  'winkle.png',
-  'blue_smoke.png',
-  'crossbones.png',
-  'floral_harmony.png',
-  'head_in_the_clouds.png',
-  'lego_fortnite.png',
-  'nibbles.png',
-  'sakura_city.png',
-  'starlight_revolver.png',
-  'witch_hat_midnight.png',
-  'blueberry_jam.png',
-  'crystal_ball_blue.png',
-  'floral_harmony_sunburst.png',
-  'head_in_the_clouds_sunset.png',
-  'lightning.png',
-  'nom_kitty.png',
-  'sakura_gyoiko.png',
-  'starlight_whales.png',
-  'witch_hat_plum.png',
-  'bonsai.png',
-  'crystal_ball_purple.png',
-  'flower_clouds.png',
-  'heart_to_heart.png',
-  'lightsabers_blue_and_red.png',
-  'o_n_i.png',
-  'sakura_ink.png',
-  'starry_eyed.png',
-  'wizard_hat_blue.png',
-  'wizard_hat_purple.png',
-  'box_blue_yellow.png',
-  'curious_bb_8.png',
-  'forest.png',
-  'heartbloom.png',
-  'lightsabers_green_and_red.png',
-  'oasis.png',
-  'sakura_pink.png',
-  'starry_eyed_green.png',
-  'wizards_staff.png',
-  'box_green_red.png',
-  'cyber_katana.png',
-  'fortnite_boogie_bomb.png',
-  'heartbloom_blue.png',
-  'lofi_girl_outfit.png',
-  'ochaco_uraraka.png',
-  'sakura_scholar.png',
-  'starry_eyed_pink.png',
-  'wolf_morph.png',
-  'box_red_white.png',
-  'cybernetic.png',
-  'fortnite_galactic_battle.png',
-  'heartbloom_green.png',
-  'los_santos.png',
-  'omens_cowl.png',
-  'sakura_ukon.png',
-  'steampunk_cat_ears.png',
-  'woolgathering.png',
-  'box_red_white_blue.png',
-  'cypher_neural_theft.png',
-  'fox_hat.png',
-  'heartbloom_purple.png',
-  'lotus_flower.png',
-  'oni_mask.png',
-  'sakura_warrior.png',
-  'stinkums.png',
-  'yoda_on_dagobah.png',
-  'box_white_blue.png',
-  'dancing_fairies.png',
-  'fox_hat_chestnut.png',
-  'heartbloom_yellow.png',
-  'lovestruck.png',
-  'open_beta.png',
-  'sandy_cheeks.png',
-  'straw_hat.png',
-  'yoru_dimensional_drift.png',
-  'brass_beats.png',
-  'dandelion_duo.png',
-  'fox_hat_snow.png',
-  'heartstrings_blue.png',
-  'lucky_envelopes.png',
-  'owlbear_cub.png',
-  'santa_cat_ears.png',
-  'strawberry_vine.png',
-  'yunara.png',
-  'bread_doggy.png',
-  'deaths_edge.png',
-  'frag_out.png',
-  'heartstrings_red.png',
-  'luminescent_lotus.png',
-  'owlbear_cub_snowy.png',
-  'saw.png',
-  'street_fighter_6_battle_field.png',
-  'zombie_food.png',
-  'bubble.png',
-  'defensive_shield.png',
-  'freezer_bunny_lovebug.png',
-  'helmsman.png',
-  'lunar_lanterns.png',
-  'pal_sphere.png',
-  'scallywag.png',
-  'string_lights.png',
-  'zombie_food_purple.png',
-  'bubble_tea.png',
-  'depresso.png',
-  'fresh_pine.png',
-  'hex_lights.png',
-  'm3gan_2_0.png',
-  'palia.png',
-  'scout.png',
-  'string_lights_aurora.png',
-  'bunny.png',
-  'descendant.png',
-  'fresh_pine_cinnamon.png',
-  'hex_tiles.png',
-  'm_bison.png',
-  'pancakes.png',
-  'selyne.png',
-  'string_lights_dusk.png',
-  'bunny_zzzs.png',
-  'devil.png',
-  'fresh_pine_ribbon.png',
-  'hologram_dragon.png',
-  'magic_portal_blue.png',
-  'panzy.png',
-  'shadow.png',
-  'string_lights_ember.png',
-  'burnt_toast.png',
-  'dice_azure.png',
-  'fried_egg.png',
-  'hood_crimson.png',
-  'magical_girl.png',
-  'patrick_star.png',
-  'shenron.png',
-  'string_lights_mix.png',
-  'sunflowers.png'
-]
-
-
+          '28_years_later.png', 'bush_camper.png', 'dice_violet.png', 'friend_of_dex.png', 'hoppy_day.png',
+          'magical_wand_green.png', 'pink_futuristic_ui.png', 'shocked.png', 'supercell.png', 'a_duck.png',
+          'butterflies.png', 'digital_sunrise.png', 'frog_1.png', 'hot_shot.png', 'magical_wand_purple.png',
+          'pink_gyroscope.png', 'shocked_green.png', 'supply_llama.png', 'a_hint_of_clove.png', 'call_of_duty_mobile.png',
+          'dismay.png', 'frog_3.png', 'how_to_train_your_dragon.png', 'malefic_crown.png', 'pink_headset.png',
+          'shocked_yellow.png', 'sushi_roll.png', 'aespa_fanlight.png', 'cameraman_glitch.png', 'dismay_green.png',
+          'frog_angry.png', 'hugh_the_rainbow.png', 'mallow_jump.png', 'pink_hyper_helmet.png', 'shoto_todoroki.png',
+          'sweat_drops.png', 'afternoon_breeze.png', 'cammy.png', 'dismay_pink.png', 'frog_derpy.png',
+          'human_torch.png', 'marvel_snap_venom.png', 'pink_shine_helmet.png', 'shower_stroll.png', 'sweat_drops_cyan.png',
+          'aim_for_love.png', 'candlelight.png', 'dismay_purple.png', 'frog_hat.png', 'i_love_repo.png',
+          'mech_flora.png', 'pink_smoke.png', 'shroomling.png', 'sweat_drops_pink.png', 'air.png',
+          'candlelight_crimson.png', 'dismay_yellow.png', 'fuchsia_agent.png', 'ice_cream_frog.png', 'mecha_break.png',
+          'pipedream.png', 'shroomling_blue.png', 'sweet_tooth.png', 'akuma.png', 'candlelight_dark.png',
+          'disxcore_headset.png', 'g_toilet.png', 'ice_cube.png', 'mermaid_serenade.png', 'pirate_captain.png',
+          'shroomling_brown.png', 'teacup_blue.png', 'all_might.png', 'cannon_fire.png', 'dog_1.png',
+          'gallica.png', 'icicle_gleaming.png', 'midnight_sorceress.png', 'playful_lofi_cat.png', 'shroomling_pink.png',
+          'teacup_orange.png', 'angel.png', 'cat_1.png', 'dog_2.png', 'gary_the_snail.png',
+          'icicle_snowing.png', 'millennium_falcon_hyperdrive.png', 'polar_bear_hat.png', 'shroomling_purple.png',
+          'teacup_pink.png', 'angry.png', 'cat_2.png', 'dog_3.png', 'gawblehop.png',
+          'im_a_clown.png', 'mini_goku.png', 'pondering_portal.png', 'shurikens_mask.png', 'teacup_red.png',
+          'angry_pink.png', 'cat_3.png', 'donut.png', 'gelatinous_cube_blue.png', 'imagination.png',
+          'mini_piccolo.png', 'port_of_soul.png', 'shy.png', 'terrain_tiles.png', 'angry_yellow.png',
+          'cat_4.png', 'donut_bear.png', 'gelatinous_cube_green.png', 'implant.png', 'mini_supreme_kai.png',
+          'powered_by_shimmer.png', 'shy_in_love.png', 'terrarium.png', 'arcane_sigil.png', 'cat_ear_headset.png',
+          'donut_cat.png', 'ggez.png', 'in_love.png', 'mini_vegeta.png', 'press_f_black.png',
+          'signal_from_tau_ceti.png', 'tga_controller.png', 'armamenter.png', 'cat_ears.png', 'donut_cow.png',
+          'ghosts.png', 'in_love_blue.png', 'minions.png', 'press_f_white.png', 'silver_surfer.png',
+          'the_anomaly.png', 'astronaut_helmet.png', 'cat_ears_blue.png', 'doodlezard.png', 'git_gud.png',
+          'in_love_green.png', 'mirage.png', 'pumpkin_spice.png', 'sippy_juice.png', 'the_atlas_gauntlets.png',
+          'the_conjuring_last_rites.png', 'aurora.png', 'cat_ears_green.png', 'doodling.png', 'glitch.png',
+          'in_tears.png', 'mirage_nightshade.png', 'questionable.png', 'skibidi_toilet.png', 'the_entity.png',
+          'autumn_crown.png', 'cat_ears_purple.png', 'dragon_balls.png', 'glop.png', 'in_tears_green.png',
+          'mirage_twilight.png', 'r2_d2_on_tatooine.png', 'skull_medallion.png', 'the_fantastic_four.png',
+          'autumns_arbor.png', 'cat_ears_yellow.png', 'dragons_smile.png', 'glorio.png', 'in_tears_pink.png',
+          'mirage_void.png', 'r6_siege_x_avatar.png', 'skully_charms.png', 'the_hexcore.png',
+          'autumns_arbor_aurora.png', 'cat_onesie.png', 'dusk_and_dawn.png', 'glowing_runes.png', 'in_tears_purple.png',
+          'mischievous_kitties.png', 'radiating_energy.png', 'sleepy_bee.png', 'the_mark.png', 'baby_displacer_beast.png',
+          'cat_onesie_black.png', 'e_d_hacker.png', 'goblin_stinkums.png', 'in_tears_yellow.png', 'mischievous_kitties_blue.png',
+          'radiating_energy_blue.png', 'sleepy_chilledcow.png', 'the_monster_you_created.png', 'bad_guys_2.png',
+          'cat_onesie_pink.png', 'earth.png', 'gold_laurel_wreath.png', 'invisible_woman.png', 'mischievous_kitties_hearts.png',
+          'radiating_energy_yellow.png', 'slither_n_snack.png', 'the_petal_pack.png', 'baker_bear.png', 'cattiva.png',
+          'egg.png', 'golden_hex.png', 'inzoi_psycat.png', 'mission_impossible.png', 'rage.png',
+          'slurp_barrel.png', 'the_thing.png', 'balance.png', 'chewbert.png', 'eldritch_ring.png',
+          'gomah.png', 'izuku_midoriya.png', 'mister_fantastic.png', 'rage_blue.png', 'snakes_hug.png',
+          'thps_half_pipe.png', 'ballerina.png', 'chicken_nugget.png', 'emma_frost.png', 'gone_fishin.png',
+          'jack_o_lantern.png', 'mochi_bunny_blue.png', 'rage_green.png', 'snowdrops.png', 'timekeepers_clock.png',
+          'batarang.png', 'chillet.png', 'endeavor.png', 'good_ol_pepper.png', 'jean_grey_phoenix.png',
+          'mochi_bunny_pink.png', 'rage_purple.png', 'snowfall.png', 'toast.png', 'beach_hat.png',
+          'chomp_chomp.png', 'espn.png', 'got_xenoglossy.png', 'jeff_the_land_shark.png', 'mokoko.png',
+          'rage_red.png', 'snowglobe.png', 'toilet_lid.png', 'beamchop.png', 'chromawave.png',
+          'exoborne.png', 'grass_toucher.png', 'jelly_bear.png', 'moomoo_hood.png', 'rainy_canopy.png',
+          'snowglobe_blue.png', 'tomura_shigaraki.png', 'berry_bunny.png', 'chrysanthemums_morning.png',
+          'eye_of_prophesy.png', 'graveyard_cat.png', 'jingasa.png', 'mooncaps_blue.png', 'rainy_mood.png',
+          'snowglobe_green.png', 'torgal_puppy.png', 'touch_grass.png', 'towerborne_play.png', 'black_hole.png',
+          'city_walls.png', 'fairy_sprites_blue.png', 'green_headset.png', 'juri.png', 'mushcaps.png',
+          'red_lantern.png', 'soul_leaving_body_blue.png', 'treasure_and_key.png', 'tv_woman.png', 'black_mana.png',
+          'clicker.png', 'fairy_sprites_pink.png', 'green_hyper_helmet.png', 'kabuto.png', 'mushroom_1.png',
+          'red_mana.png', 'space_battle.png', 'speakerwoman.png', 'ufo.png', 'blade_storm.png',
+          'clyde_invaders.png', 'fall_leaves.png', 'green_mana.png', 'katsuki_bakugo.png', 'mushroom_2.png',
+          'reynas_leer.png', 'speakerwoman.png', 'spirit_blossom_karma.png', 'ultron.png', 'blanket_green.png',
+          'confetti_festive.png', 'fall_leaves_scarlet.png', 'green_shine_helmet.png', 'ken.png', 'mushroom_3.png',
+          'rift_butterfly.png', 'spirit_blossom_morgana.png', 'unicorn.png', 'blanket_orange.png', 'confetti_fire.png',
+          'fall_leaves_woodland.png', 'green_smoke.png', 'khazan.png', 'mushroom_4.png', 'r6_siege_x_avatar.png',
+          'spirit_blossom_springs.png', 'uwu_xp.png', 'blanket_pink.png', 'confetti_ice.png', 'fan_flourish.png',
+          'greenhouse_cat.png', 'ki_energy.png', 'nba_2k26.png', 'ring_of_roses_blue.png', 'spirit_blossom_springs_ahri.png',
+          'valorant_champions_2024.png', 'blanket_purple.png', 'confetti_mint.png', 'feelin_awe.png', 'group_hug.png',
+          'ki_energy_blue.png', 'neon_cat_hoodie.png', 'ring_of_roses_red.png', 'spirit_blossom_springs_sett.png',
+          'valorant_summer_kickoff.png', 'bloodthirsty.png', 'confetti_star.png', 'feelin_nervous.png', 'guile.png',
+          'ki_energy_cyan.png', 'neon_cat_hoodie_black.png', 'rocket_puncher.png', 'spirit_blossom_zed.png',
+          'victory_crown.png', 'bloodthirsty_gold.png', 'confetti_vaporwave.png', 'feelin_panic.png', 'hackclaw.png',
+          'ki_energy_fuchsia.png', 'neon_cat_hoodie_blue.png', 'rose_bearer_blue.png', 'spirit_embers.png',
+          'viper_poison_cloud.png', 'bloodthirsty_green.png', 'constellations.png', 'feelin_scrumptious.png', 'hailey.png',
+          'ki_energy_green.png', 'neon_cat_hoodie_pink.png', 'rose_bearer_pink.png', 'split.png', 'wallach_spaceport.png',
+          'bloomling.png', 'copium.png', 'feeling_cute.png', 'hammy.png', 'kitsune.png',
+          'neon_decora_hair.png', 'ruby_hearts.png', 'spirit_blossom_springs.png', 'warp_helmet.png', 'blossomburst.png',
+          'cottage_home.png', 'fire.png', 'hammy_blue.png', 'koi_pond.png', 'neon_nibbles.png',
+          'rumbling.png', 'split.png', 'water.png', 'blue_futuristic_ui.png', 'cow_glider.png',
+          'firecrackers.png', 'hammy_green.png', 'lamball.png', 'neon_spike_choker.png', 'ryu.png',
+          'spongebob.png', 'wendys_x_wednesday.png', 'blue_gyroscope.png', 'cozy_cat.png', 'fireflies.png',
+          'hammy_pink.png', 'lava_blobs.png', 'neon_spike_choker_black.png', 'sakura.png', 'spooky_cat_ears.png',
+          'white_mana.png', 'blue_hyper_helmet.png', 'cozy_headphones.png', 'fishbones.png', 'hank_hill.png',
+          'lava_blobs_blue.png', 'new_year_2024.png', 'sakura_1.png', 'spooky_cat_ears_midnight.png', 'wingman_boba.png',
+          'blue_mana.png', 'cozy_post_it.png', 'flame_chompers.png', 'happy_harvest.png', 'lava_blobs_pink.png',
+          'new_year_2025.png', 'sakura_2.png', 'sproutling.png', 'wingmans_got_it.png', 'blue_shine_helmet.png',
+          'cozy_post_it_festive.png', 'flaming_sword.png', 'hawks.png', 'lava_blobs_slime.png', 'next_turn_button.png',
+          'sakura_3.png', 'stardust.png', 'winkle.png', 'blue_smoke.png', 'crossbones.png',
+          'floral_harmony.png', 'head_in_the_clouds.png', 'lego_fortnite.png', 'nibbles.png', 'sakura_city.png',
+          'starlight_revolver.png', 'witch_hat_midnight.png', 'blueberry_jam.png', 'crystal_ball_blue.png',
+          'floral_harmony_sunburst.png', 'head_in_the_clouds_sunset.png', 'lightning.png', 'nom_kitty.png', 'sakura_gyoiko.png',
+          'starlight_whales.png', 'witch_hat_plum.png', 'bonsai.png', 'crystal_ball_purple.png', 'flower_clouds.png',
+          'heart_to_heart.png', 'lightsabers_blue_and_red.png', 'o_n_i.png', 'sakura_ink.png', 'starry_eyed.png',
+          'wizard_hat_blue.png', 'wizard_hat_purple.png', 'box_blue_yellow.png', 'curious_bb_8.png', 'forest.png',
+          'heartbloom.png', 'lightsabers_green_and_red.png', 'oasis.png', 'sakura_pink.png', 'starry_eyed_green.png',
+          'wizards_staff.png', 'box_green_red.png', 'cyber_katana.png', 'fortnite_boogie_bomb.png', 'heartbloom_blue.png',
+          'lofi_girl_outfit.png', 'ochaco_uraraka.png', 'sakura_scholar.png', 'starry_eyed_pink.png', 'wolf_morph.png',
+          'box_red_white.png', 'cybernetic.png', 'fortnite_galactic_battle.png', 'heartbloom_green.png', 'los_santos.png',
+          'omens_cowl.png', 'sakura_ukon.png', 'steampunk_cat_ears.png', 'woolgathering.png', 'box_red_white_blue.png',
+          'cypher_neural_theft.png', 'fox_hat.png', 'heartbloom_purple.png', 'lotus_flower.png', 'oni_mask.png',
+          'sakura_warrior.png', 'stinkums.png', 'yoda_on_dagobah.png', 'box_white_blue.png', 'dancing_fairies.png',
+          'fox_hat_chestnut.png', 'heartbloom_yellow.png', 'lovestruck.png', 'open_beta.png', 'sandy_cheeks.png',
+          'straw_hat.png', 'yoru_dimensional_drift.png', 'brass_beats.png', 'dandelion_duo.png', 'fox_hat_snow.png',
+          'heartstrings_blue.png', 'lucky_envelopes.png', 'owlbear_cub.png', 'santa_cat_ears.png', 'strawberry_vine.png',
+          'yunara.png', 'bread_doggy.png', 'deaths_edge.png', 'frag_out.png', 'heartstrings_red.png',
+          'luminescent_lotus.png', 'owlbear_cub_snowy.png', 'saw.png', 'street_fighter_6_battle_field.png', 'zombie_food.png',
+          'bubble.png', 'defensive_shield.png', 'freezer_bunny_lovebug.png', 'helmsman.png', 'lunar_lanterns.png',
+          'pal_sphere.png', 'scallywag.png', 'string_lights.png', 'zombie_food_purple.png', 'bubble_tea.png',
+          'depresso.png', 'fresh_pine.png', 'hex_lights.png', 'm3gan_2_0.png', 'palia.png',
+          'scout.png', 'string_lights_aurora.png', 'bunny.png', 'descendant.png', 'fresh_pine_cinnamon.png',
+          'hex_tiles.png', 'm_bison.png', 'pancakes.png', 'selyne.png', 'string_lights_dusk.png',
+          'bunny_zzzs.png', 'devil.png', 'fresh_pine_ribbon.png', 'hologram_dragon.png', 'magic_portal_blue.png',
+          'panzy.png', 'shadow.png', 'string_lights_ember.png', 'burnt_toast.png', 'dice_azure.png',
+          'fried_egg.png', 'hood_crimson.png', 'magical_girl.png', 'patrick_star.png', 'shenron.png',
+          'string_lights_mix.png', 'sunflowers.png'
+        ];
 
         function createImageCard(imageName) {
-    const imagePath = `${window.location.origin}/42-Profile-Image/assets/imgs/${imageName}`;
-    let fileNameWithoutExt = imageName.substring(0, imageName.lastIndexOf('.')) || imageName;
-    fileNameWithoutExt = fileNameWithoutExt.replace(/_/g, ' ');
+            const imagePath = `${window.location.origin}/42-Profile-Image/assets/imgs/${imageName}`;
+            let fileNameWithoutExt = imageName.substring(0, imageName.lastIndexOf('.')) || imageName;
+            fileNameWithoutExt = fileNameWithoutExt.replace(/_/g, ' ');
 
-    const card = document.createElement('div');
-    card.className = 'image-card';
-    card.innerHTML = `
-        <div class="status-indicator"></div>
-        <img src="${imagePath}" alt="${fileNameWithoutExt}" class="image-preview"
-             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1520209759809-a9bcb6cb3241?fm=jpg&q=60&w=800&fit=contain'">
-        <div class="image-info">
-            <div class="image-name">${fileNameWithoutExt}</div>
-            <div class="image-path">${imagePath}</div>
-            <button class="copy-btn" onclick="copyToClipboard('${imagePath}', this)">
-                📋 Copy URL
-            </button>
-        </div>
-    `;
-    
-    return card;
-}
-
-
+            const card = document.createElement('div');
+            card.className = 'image-card';
+            card.innerHTML = `
+                <div class="status-indicator"></div>
+                <img src="${imagePath}" alt="${fileNameWithoutExt}" class="image-preview"
+                     onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1520209759809-a9bcb6cb3241?fm=jpg&q=60&w=800&fit=contain'">
+                <div class="image-info">
+                    <div class="image-name">${fileNameWithoutExt}</div>
+                    <div class="image-path">${imagePath}</div>
+                    <button class="copy-btn" onclick="copyToClipboard('${imagePath}', this)">
+                        📋 Copy URL
+                    </button>
+                </div>
+            `;
+            
+            return card;
+        }
 
         async function copyToClipboard(text, button) {
             try {
@@ -842,41 +450,119 @@
             }
         }
 
-        function loadImages() {
+        function setupPagination(images) {
+            totalPages = Math.ceil(images.length / IMAGES_PER_PAGE);
+            paginationDiv.innerHTML = '';
+            
+            if (totalPages <= 1) {
+                paginationDiv.style.display = 'none';
+                return;
+            }
+            
+            paginationDiv.style.display = 'flex';
+            
+            // Previous button
+            if (totalPages > 1) {
+                const prevBtn = document.createElement('button');
+                prevBtn.className = 'page-btn';
+                prevBtn.textContent = '←';
+                prevBtn.addEventListener('click', () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderPage(images);
+                    }
+                });
+                paginationDiv.appendChild(prevBtn);
+            }
+            
+            // Page buttons
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = 'page-btn';
+                if (i === currentPage) {
+                    pageBtn.classList.add('active');
+                }
+                pageBtn.textContent = i;
+                pageBtn.addEventListener('click', () => {
+                    currentPage = i;
+                    renderPage(images);
+                });
+                paginationDiv.appendChild(pageBtn);
+            }
+            
+            // Next button
+            if (totalPages > 1) {
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'page-btn';
+                nextBtn.textContent = '→';
+                nextBtn.addEventListener('click', () => {
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderPage(images);
+                    }
+                });
+                paginationDiv.appendChild(nextBtn);
+            }
+            
+            // Update page info
+            pageInfoDiv.textContent = `Page ${currentPage} of ${totalPages} (${images.length} total images)`;
+        }
+
+        function renderPage(images) {
             gallery.innerHTML = '';
             
+            const startIndex = (currentPage - 1) * IMAGES_PER_PAGE;
+            const endIndex = Math.min(startIndex + IMAGES_PER_PAGE, images.length);
+            const pageImages = images.slice(startIndex, endIndex);
+            
+            pageImages.forEach(imageName => {
+                const card = createImageCard(imageName);
+                gallery.appendChild(card);
+            });
+            
+            setupPagination(images);
+            
+            // Add smooth animations
+            const cards = document.querySelectorAll('.image-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.05}s`;
+                card.style.animation = 'fadeInUp 0.6s ease forwards';
+            });
+        }
+
+        function loadImages() {
             // In a real implementation, you would read the actual imgs folder
             // For now, we'll use mock data
-            const images = mockImages.filter(file => 
+            allImages = mockImages.filter(file => 
                 imageExtensions.some(ext => file.toLowerCase().endsWith(ext))
             );
 
-            if (images.length === 0) {
+            if (allImages.length === 0) {
                 gallery.style.display = 'none';
+                paginationDiv.style.display = 'none';
+                pageInfoDiv.style.display = 'none';
                 noImagesDiv.style.display = 'block';
                 return;
             }
 
             gallery.style.display = 'grid';
+            paginationDiv.style.display = 'flex';
+            pageInfoDiv.style.display = 'block';
             noImagesDiv.style.display = 'none';
-
-            images.forEach(imageName => {
-                const card = createImageCard(imageName);
-                gallery.appendChild(card);
-            });
+            
+            currentPage = 1;
+            renderPage(allImages);
         }
-
-        // Load images on page load
         document.addEventListener('DOMContentLoaded', loadImages);
 
-        // Add some smooth animations
-        document.addEventListener('DOMContentLoaded', function() {
-            const cards = document.querySelectorAll('.image-card');
-            cards.forEach((card, index) => {
-                card.style.animationDelay = `${index * 0.1}s`;
-                card.style.animation = 'fadeInUp 0.6s ease forwards';
-            });
-        });
 
         const style = document.createElement('style');
         style.textContent = `
@@ -889,12 +575,6 @@
                     opacity: 1;
                     transform: translateY(0);
                 }
-            }
-            
-            @keyframes loading {
-                0% { width: 0%; }
-                50% { width: 70%; }
-                100% { width: 0%; }
             }
             
             .image-card {
